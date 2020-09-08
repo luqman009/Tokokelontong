@@ -9,27 +9,20 @@ import (
 	"strings"
 )
 
-type BarangDelivery struct {
-	barangService *BarangService
-}
-
-func NewBarangDelevery(c *AppConfigBarang) *BarangDelivery {
-	repo := NewBarangRepository(c.getDbPath(), c.getDb())
-	barangService := NewBarangService(repo)
-	return &BarangDelivery{barangService}
-}
-
-type TransaksigDelivery struct {
+type TokoDelivery struct {
+	barangService    *BarangService
 	transaksiService *TransaksiService
 }
 
-func NewtransaksiDelevery(c *AppConfigTransaksi) *TransaksigDelivery {
-	repo := NewTransaksiRepository(c.getDbPath(), c.getDb())
-	transaksiService := NewTransaksiService(repo)
-	return &TransaksigDelivery{transaksiService}
+func NewBarangDelevery(c *AppConfigBarang) *TokoDelivery {
+	repoBarang := NewBarangRepository(c.getDbPath(), c.getDbBarang())
+	repoTransaksi := NewTransaksiRepository(c.getDbPath(), c.getDbTansaksi())
+	barangService := NewBarangService(repoBarang)
+	transaksiService := NewTransaksiService(repoTransaksi)
+	return &TokoDelivery{barangService, transaksiService}
 }
 
-func (bd *BarangDelivery) create() {
+func (bd *TokoDelivery) create() {
 	var isExit = false
 	var userChoice string
 
@@ -42,15 +35,20 @@ func (bd *BarangDelivery) create() {
 			bd.registerationBarangForm()
 		case "02":
 			bd.viewDataBarangForm()
+		case "03":
+			bd.registerationtransaksiForm()
+		case "04":
+			bd.viewDataTransaksiForm()
 		case "q":
 			isExit = true
 		default:
 			fmt.Println("Unknown menu code")
 		}
+
 	}
 }
 
-func (bd *BarangDelivery) menuChoiceOrdered(m map[string]string) []string {
+func (bd *TokoDelivery) menuChoiceOrdered(m map[string]string) []string {
 	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
@@ -59,10 +57,12 @@ func (bd *BarangDelivery) menuChoiceOrdered(m map[string]string) []string {
 	return keys
 }
 
-func (bd *BarangDelivery) mainMenuForm() {
+func (bd *TokoDelivery) mainMenuForm() {
 	var appMenu = map[string]string{
-		"01": "Add book to collection",
-		"02": "View book to collection",
+		"01": "Add Barang",
+		"02": "View Barang",
+		"03": "Add Transaksi ",
+		"04": "View Transaksi ",
 		"q":  " Quit aplication",
 	}
 	fmt.Printf("%s\n", strings.Repeat("*", 30))
@@ -73,7 +73,7 @@ func (bd *BarangDelivery) mainMenuForm() {
 	}
 }
 
-func (bd *BarangDelivery) registerationBarangForm() {
+func (bd *TokoDelivery) registerationBarangForm() {
 	consoleClear()
 	var namabarang string
 	var kategori string
@@ -116,8 +116,48 @@ func (bd *BarangDelivery) registerationBarangForm() {
 	consoleClear()
 	bd.mainMenuForm()
 }
+func (bd *TokoDelivery) registerationtransaksiForm() {
+	consoleClear()
+	var namabarang string
+	var jumlah int
+	var tanggal int
+	var bulan int
+	var tahun int
+	var confirmation string
 
-func (bd *BarangDelivery) viewDataBarangForm() {
+	fmt.Println()
+	fmt.Printf("%s\n", "Transaksi Registration Form")
+	fmt.Printf("%s\n", strings.Repeat("-", 30))
+	scanner := bufio.NewReader(os.Stdin)
+	fmt.Print("Nama Barang : ")
+	sNamabarang, _ := scanner.ReadString('\n')
+	namabarang = strings.TrimSpace(sNamabarang)
+	fmt.Print("Jumlah  : ")
+	sJumlah, _ := scanner.ReadString('\n')
+	jumlah, _ = strconv.Atoi(strings.TrimSpace(sJumlah))
+	fmt.Print("Masukan Tanggal Bulan Tahun")
+	fmt.Print("Tanggal")
+	sTanggal, _ := scanner.ReadString('\n')
+	tanggal, _ = strconv.Atoi(strings.TrimSpace(sTanggal))
+	fmt.Print("Bulan")
+	sBulan, _ := scanner.ReadString('\n')
+	bulan, _ = strconv.Atoi(strings.TrimSpace(sBulan))
+	fmt.Print("Tahun")
+	sTahun, _ := scanner.ReadString('\n')
+	tahun, _ = strconv.Atoi(strings.TrimSpace(sTahun))
+
+	fmt.Println("Save to collection ? : (Y/N)")
+	fmt.Scanln(&confirmation)
+
+	if confirmation == "y" {
+		newTransaksi := NewTransaksi(namabarang, jumlah, tanggal, bulan, tahun)
+		bd.transaksiService.registerTransaksi(&newTransaksi)
+	}
+	consoleClear()
+	bd.mainMenuForm()
+}
+
+func (bd *TokoDelivery) viewDataBarangForm() {
 	consoleClear()
 	barang := bd.barangService.getAllBarang()
 	fmt.Println("")
@@ -127,6 +167,34 @@ func (bd *BarangDelivery) viewDataBarangForm() {
 	fmt.Printf("%s\n", strings.Repeat("=", 135))
 	for _, b := range barang {
 		fmt.Printf("%-40s%-15s%-15s%-15.2f%-10v%-25s%-15s\n", b.KodeBarang, b.NamaBarang, b.Kategori, b.Harga, b.Stok, b.Deskripsi, b.Ukuran)
+	}
+
+	for {
+		var kembali string
+		fmt.Print("Back To menu ? : (Y)")
+		fmt.Scanln(&kembali)
+		if kembali == "y" {
+			consoleClear()
+			bd.mainMenuForm()
+			break
+
+		} else {
+			fmt.Println("inputan salah")
+		}
+
+	}
+}
+
+func (bd *TokoDelivery) viewDataTransaksiForm() {
+	consoleClear()
+	transaksi := bd.transaksiService.getAllTransaksi()
+	fmt.Println("")
+	fmt.Printf("Data Transaksi\n")
+	fmt.Printf("%s\n", strings.Repeat("=", 135))
+	fmt.Printf("%-40s%-15s%-15s%-15s\n", "Kode transaksi", "Nama Barang", "Jumlah", "Tanggal transaksi")
+	fmt.Printf("%s\n", strings.Repeat("=", 135))
+	for _, b := range transaksi {
+		fmt.Printf("%-40s%-15s%-15v%v-%v-%v\n", b.KodeTransaksi, b.Barang, b.Jumlah, b.Tanggal, b.Bulan, b.Tahun)
 	}
 
 	for {

@@ -1,11 +1,20 @@
 [
  {
-  "KodeBarang": "0662ac98aeb799607dce1e6961eff190",
-  "NamaBarang": "Sepatu",
-  "Kategori": "sepatu",
-  "Harga": 300000,
+  "KodeBarang": "",
+  "NamaBarang": "",
+  "Kategori": "",
+  "Harga": 0,
+  "Stok": 0,
+  "Deskripsi": "",
+  "Ukuran": ""
+ },
+ {
+  "KodeBarang": "2fe736be554b361be7135e5e006a79d4",
+  "NamaBarang": "Buku",
+  "Kategori": "alat tulis",
+  "Harga": 3000,
   "Stok": 20,
-  "Deskripsi": "untuk kaki",
-  "Ukuran": "31"
+  "Deskripsi": "menulis",
+  "Ukuran": "sedang"
  }
 ]
